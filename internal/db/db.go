@@ -1,26 +1,13 @@
 package db
 
-import (
-	"github.com/joho/godotenv"
-	"log"
-	"os"
-)
+import "database/sql"
 
-type Config struct {
-	DatabaseURL string
-}
-
-const (
-	ErrorLoadEnv = "Error loading .env file: %v"
-)
-
-func StartConfig() *Config {
-	err := godotenv.Load()
+func Connect(DatabaseUrl string) (*sql.DB, error) {
+	connect, err := sql.Open("postgres", DatabaseUrl)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		return nil, err
 	}
-	return &Config{
-		DatabaseURL: os.Getenv("DATABASE"),
-	}
+
+	return connect, nil
 
 }
