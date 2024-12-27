@@ -3,15 +3,42 @@ package main
 import (
 	"fmt"
 	_ "github.com/lib/pq"
+	"library/config"
+	"library/internal"
 	"library/internal/db"
 	"log"
 )
 
 func main() {
-	conect, err := db.Connect("postgres://postgres:sql091233@localhost:5430/Library?sslmode=disable")
+	cgf := config.StartConfig()
+
+	DB, err := db.Connect(cgf.DatabaseURL)
 	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
+		log.Fatal(err)
 	}
-	defer conect.Close()
-	fmt.Println("ok")
+	defer DB.Close()
+
+	if err := db.Ping(DB); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Conneсt to DB is OK!")
+
+	BookName := ""
+	Author := ""
+	YearRealease := ""
+
+	fmt.Scanln(&BookName, &Author, &YearRealease)
+
+	Book := &internal.Book{
+		BookName:     BookName,
+		Author:       Author,
+		YearRealease: YearRealease,
+	}
+
+	if err := db.InsertBook(DB, Book); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Date is insert succsesfully")
+
 }

@@ -3,6 +3,6 @@ package internal
 type Book struct {
 	ID           int
 	BookName     string
-	author       string
+	Author       string
 	YearRealease string
 }
