@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	_ "github.com/lib/pq"
 	"library/config"
 	"library/internal/db"
+	"library/internal/server"
 	"log"
 )
 
@@ -14,19 +14,46 @@ const (
 )
 
 func main() {
-	cfg := config.StartConfig()
+	cfg, err := config.StartConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	//Database
 	DB, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(ConnectStatus)
+	defer DB.Close()
 
-	if err := db.Ping(DB); err != nil {
+	server := server.StartServer(DB)
+
+	if err := server.Router.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(PingStatus)
+
+	//server := gin.Default()
+
+	//server.GET("/", func(c *gin.Context) {
+	//	c.JSON(200, gin.H{
+	//		"status": ConnectStatus,
+	//	})
+	//})
+	//
+	//server.Run(":8080")
+
+	//	DB, err := db.Connect(cfg.DatabaseURL)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//
+	//	fmt.Println(ConnectStatus)
+	//
+	//	if err := db.Ping(DB); err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	fmt.Println(PingStatus)
 
 	//	fmt.Println("Enter the operation\n1.Book\n2.Books")
 	//	var operation int
@@ -63,9 +90,9 @@ func main() {
 	//	log.Fatal(err)
 	//}
 
-	if err := db.DeleteFromID(DB, 7); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Delete is succesful!")
+	//if err := db.DeleteFromID(DB, 7); err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Println("Delete is succesful!")
 
 }
