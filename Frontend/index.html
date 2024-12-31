@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Книжный API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        h2 {
+            color: #333;
+        }
+        input, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            white-space: pre-wrap;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Работа с Книжным API</h2>
+
+    <!-- GET /books -->
+    <h3>Получить все книги</h3>
+    <button id="getAllBooks">Получить все книги</button>
+    <div id="getAllBooksOutput" class="output"></div>
+
+    <!-- POST /book -->
+    <h3>Добавить новую книгу</h3>
+    <input type="text" id="bookTitle" placeholder="Название книги">
+    <input type="text" id="bookAuthor" placeholder="Автор книги">
+    <button id="addBook">Добавить книгу</button>
+    <div id="addBookOutput" class="output"></div>
+
+    <!-- GET /book/:id -->
+    <h3>Получить книгу по ID</h3>
+    <input type="number" id="bookIdGet" placeholder="ID книги">
+    <button id="getBookById">Получить книгу</button>
+    <div id="getBookByIdOutput" class="output"></div>
+
+    <!-- DELETE /book/:id -->
+    <h3>Удалить книгу по ID</h3>
+    <input type="number" id="bookIdDelete" placeholder="ID книги">
+    <button id="deleteBook">Удалить книгу</button>
+    <div id="deleteBookOutput" class="output"></div>
+</div>
+
+<script>
+    const API_BASE_URL = "http://localhost:8080"; // Замени на адрес твоего сервера
+
+    // Получить все книги
+    document.getElementById('getAllBooks').addEventListener('click', async () => {
+        const output = document.getElementById('getAllBooksOutput');
+        try {
+            const response = await fetch(`${API_BASE_URL}/books`);
+            if (response.ok) {
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } else {
+                output.textContent = `Ошибка: ${response.statusText}`;
+            }
+        } catch (err) {
+            output.textContent = `Произошла ошибка: ${err}`;
+        }
+    });
+
+    // Добавить книгу
+    document.getElementById('addBook').addEventListener('click', async () => {
+        const title = document.getElementById('bookTitle').value;
+        const author = document.getElementById('bookAuthor').value;
+        const output = document.getElementById('addBookOutput');
+        if (!title || !author) {
+            output.textContent = "Пожалуйста, заполните все поля.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/book`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, author })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                output.textContent = `Книга добавлена: ${JSON.stringify(data, null, 2)}`;
+            } else {
+                const error = await response.json();
+                output.textContent = `Ошибка: ${error.Err || response.statusText}`;
+            }
+        } catch (err) {
+            output.textContent = `Произошла ошибка: ${err}`;
+        }
+    });
+
+    // Получить книгу по ID
+    document.getElementById('getBookById').addEventListener('click', async () => {
+        const id = document.getElementById('bookIdGet').value;
+        const output = document.getElementById('getBookByIdOutput');
+        if (!id) {
+            output.textContent = "Пожалуйста, введите ID.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/book/${id}`);
+            if (response.ok) {
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            } else {
+                const error = await response.json();
+                output.textContent = `Ошибка: ${error.Err || response.statusText}`;
+            }
+        } catch (err) {
+            output.textContent = `Произошла ошибка: ${err}`;
+        }
+    });
+
+    // Удалить книгу по ID
+    document.getElementById('deleteBook').addEventListener('click', async () => {
+        const id = document.getElementById('bookIdDelete').value;
+        const output = document.getElementById('deleteBookOutput');
+        if (!id) {
+            output.textContent = "Пожалуйста, введите ID.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/book/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                output.textContent = `Книга удалена: ${JSON.stringify(data, null, 2)}`;
+            } else {
+                const error = await response.json();
+                output.textContent = `Ошибка: ${error.Err || response.statusText}`;
+            }
+        } catch (err) {
+            output.textContent = `Произошла ошибка: ${err}`;
+        }
+    });
+</script>
+</body>
+</html>

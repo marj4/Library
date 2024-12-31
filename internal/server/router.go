@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"library/internal"
 	"library/internal/db"
@@ -17,10 +18,18 @@ const (
 	Book        = "book"
 	ErrSaveBook = "Dont save book in db"
 	ErrBindJSON = "Dont bind tag"
+	ErrConvert  = "Cant convert ascii to int"
 )
 
 func SetupRouter(Database *sql.DB) *gin.Engine {
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:63342"}, // Укажи URL фронтенда
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true,
+	}))
 
 	router.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -77,12 +86,12 @@ func SetupRouter(Database *sql.DB) *gin.Engine {
 		if err != nil {
 			c.JSON(400, gin.H{
 				Status: Unsuccess,
-				Err:    "Cant convert ascii to int",
+				Err:    ErrConvert,
 			})
 			return
 		}
 
-		InfoBook, err := db.InfoForID(Database, id)
+		InfoForBook, err := db.InfoForID(Database, id)
 		if err != nil {
 			c.JSON(500, gin.H{
 				Status: Unsuccess,
@@ -93,7 +102,34 @@ func SetupRouter(Database *sql.DB) *gin.Engine {
 
 		c.JSON(200, gin.H{
 			Status: Success,
-			"Info": InfoBook,
+			"Info": InfoForBook,
+		})
+
+	})
+
+	router.DELETE("/book/:id", func(c *gin.Context) {
+		query := c.Param("id")
+
+		id, err := strconv.Atoi(query)
+		if err != nil {
+			c.JSON(400, gin.H{
+				Status: Unsuccess,
+				Err:    ErrConvert,
+			})
+			return
+		}
+
+		if err := db.DeleteFromID(Database, id); err != nil {
+			c.JSON(500, gin.H{
+				Status: Unsuccess,
+				Err:    "Book with this id is absent",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			Status:    Success,
+			"message": "Boook with this id is deleted",
 		})
 
 	})
